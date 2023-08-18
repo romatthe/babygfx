@@ -23,7 +23,7 @@ fn main() {
         }
         // Update
         // Render
-        render(&mut canvas)
+        render(&mut canvas);
     }
 }
 

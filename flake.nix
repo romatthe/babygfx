@@ -35,9 +35,12 @@
             lockFile = ./Cargo.lock;
           };
 
-	  buildInputs = [
-	    SDL2
-	  ];
+          nativeBuildInputs = [
+            rust-dist
+          ];
+          buildInputs = [
+            SDL2
+          ];
         };
   
         defaultApp = utils.lib.mkApp {
