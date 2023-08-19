@@ -58,15 +58,13 @@ impl <'a> Renderer<'a> {
         self.canvas.set_draw_color(Color::from_u32(&PixelFormat::try_from(PixelFormatEnum::ARGB8888).unwrap(), color));
         self.canvas.clear();
     }
-
     
     pub fn render(&mut self) {
         // Clear the renderer
         self.clear_canvas(0x00000000);
 
-        // Update the texture with the pixel buffer data and copy it to the canvas renderer
-        let data = self.pixbuf.buffer.iter().flat_map(|b| b.to_le_bytes()).collect::<Vec<u8>>();
-        self.texture.update(None, data.as_slice(), (WIN_WIDTH * 4) as usize).unwrap();
+        // We use bytemuck here to cast &[u32] to &[u8] here.
+        self.texture.update(None, bytemuck::cast_slice(&self.pixbuf.buffer), (WIN_WIDTH * 4) as usize).unwrap();
         self.canvas.copy(&self.texture, None, None).unwrap();
 
         // Clear the pixel buffer
