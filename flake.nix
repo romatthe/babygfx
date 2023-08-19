@@ -38,6 +38,7 @@
           nativeBuildInputs = [
             rust-dist
           ];
+
           buildInputs = [
             SDL2
           ];
@@ -54,8 +55,8 @@
             nixfmt
             rust-dist
 
-	    # Deps
-	    SDL2
+            # Deps
+            SDL2
           ];
 
           shellHook = ''
