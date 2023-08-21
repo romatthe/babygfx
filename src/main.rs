@@ -1,3 +1,4 @@
+use once_cell::sync::OnceCell;
 use sdl2::{self, Sdl};
 use sdl2::event::Event;
 use sdl2::keyboard::Keycode;
@@ -5,17 +6,18 @@ use sdl2::pixels::{Color, PixelFormat, PixelFormatEnum};
 use sdl2::render::{Canvas, Texture, TextureAccess, TextureCreator};
 use sdl2::video::{Window, WindowContext};
 
-const WIN_WIDTH: u32 = 800;
-const WIN_HEIGHT: u32 = 600;
+static WIN_WIDTH: OnceCell<u32> = OnceCell::new();
+static WIN_HEIGHT: OnceCell<u32> = OnceCell::new();
+
 
 struct PixelBuffer {
-    buffer: [u32; (WIN_WIDTH * WIN_HEIGHT) as usize],
+    buffer: Vec<u32>,
 }
 
 impl PixelBuffer {
     pub fn new() -> Self {
         PixelBuffer {
-            buffer: [0; (WIN_WIDTH * WIN_HEIGHT) as usize],
+            buffer: vec![0; (WIN_WIDTH.get().unwrap()  * WIN_HEIGHT.get().unwrap()) as usize],
         }
     }
 
@@ -28,9 +30,9 @@ impl PixelBuffer {
     }
 
     pub fn set_pixel(&mut self, x: usize, y: usize, color: u32) {
-        if (x < WIN_WIDTH as usize) && (y < WIN_HEIGHT as usize) {
+        if (x < *WIN_WIDTH.get().unwrap() as usize) && (y < *WIN_HEIGHT.get().unwrap() as usize) {
             // self.buffer[x][y] = color;
-            self.buffer[(WIN_WIDTH as usize) * y + x] = color;
+            self.buffer[(*WIN_WIDTH.get().unwrap() as usize) * y + x] = color;
         }
     }
 }
@@ -51,10 +53,9 @@ struct Renderer<'a> {
 impl <'a> Renderer<'a> {
     pub fn new(canvas: Canvas<Window>, creator: &'a TextureCreator<WindowContext>) -> Self {
         let texture = creator
-            .create_texture(PixelFormatEnum::ARGB8888, TextureAccess::Streaming, WIN_WIDTH, WIN_HEIGHT)
+            .create_texture(PixelFormatEnum::ARGB8888, TextureAccess::Streaming, *WIN_WIDTH.get().unwrap(), *WIN_HEIGHT.get().unwrap())
             .unwrap();
 
-        // Renderer { pixbuf: PixelBuffer::default(), canvas, texture_creator: creator, texture }
         Renderer { pixbuf: PixelBuffer::default(), canvas, texture }
     }
 
@@ -68,7 +69,7 @@ impl <'a> Renderer<'a> {
         self.clear_canvas(0x00000000);
 
         // We use bytemuck to cast &[u32] to &[u8] here.
-        self.texture.update(None, bytemuck::cast_slice(&self.pixbuf.buffer), (WIN_WIDTH * 4) as usize).unwrap();
+        self.texture.update(None, bytemuck::cast_slice(&self.pixbuf.buffer), (WIN_WIDTH.get().unwrap() * 4) as usize).unwrap();
         self.canvas.copy(&self.texture, None, None).unwrap();
 
         // Clear the pixel buffer
@@ -119,9 +120,15 @@ fn setup() -> (Sdl, Canvas<Window>) {
     let sdl_context = sdl2::init().unwrap_or_else(|err| panic!("Failed to initialize SDL: {}", err));
     let video_subsystem = sdl_context.video().unwrap_or_else(|err| panic!("SDL video subsystem failed to initialize: {}", err));
 
+    // Get the main monitor dimensions and set the global variables
+    let display_mode = video_subsystem.current_display_mode(0).expect("SDL video subsytem failed to query monitor 0 display mode.");
+    WIN_WIDTH.set(display_mode.w as u32).unwrap();
+    WIN_HEIGHT.set(display_mode.h as u32).unwrap();
+
     // Create an SDL window
-    let window = video_subsystem.window("BabyGFX", WIN_WIDTH, WIN_HEIGHT)
+    let window = video_subsystem.window("BabyGFX", *WIN_WIDTH.get().unwrap(), *WIN_HEIGHT.get().unwrap())
         .position_centered()
+        .fullscreen()
         .build()
         .unwrap_or_else(|err| panic!("Error creating an SDL window: {}", err));
 
