@@ -1,10 +1,14 @@
-use sdl2::{self, video::{Window, WindowContext}, event::Event, keyboard::Keycode, render::{Canvas, Texture, TextureAccess, TextureCreator}, pixels::{Color, PixelFormat, PixelFormatEnum}, Sdl};
+use sdl2::{self, Sdl};
+use sdl2::event::Event;
+use sdl2::keyboard::Keycode;
+use sdl2::pixels::{Color, PixelFormat, PixelFormatEnum};
+use sdl2::render::{Canvas, Texture, TextureAccess, TextureCreator};
+use sdl2::video::{Window, WindowContext};
 
 const WIN_WIDTH: u32 = 800;
 const WIN_HEIGHT: u32 = 600;
 
 struct PixelBuffer {
-    // buffer: [[u32; WIN_HEIGHT as usize]; WIN_WIDTH as usize],
     buffer: [u32; (WIN_WIDTH * WIN_HEIGHT) as usize],
 }
 
@@ -63,7 +67,7 @@ impl <'a> Renderer<'a> {
         // Clear the renderer
         self.clear_canvas(0x00000000);
 
-        // We use bytemuck here to cast &[u32] to &[u8] here.
+        // We use bytemuck to cast &[u32] to &[u8] here.
         self.texture.update(None, bytemuck::cast_slice(&self.pixbuf.buffer), (WIN_WIDTH * 4) as usize).unwrap();
         self.canvas.copy(&self.texture, None, None).unwrap();
 
@@ -118,7 +122,6 @@ fn setup() -> (Sdl, Canvas<Window>) {
     // Create an SDL window
     let window = video_subsystem.window("BabyGFX", WIN_WIDTH, WIN_HEIGHT)
         .position_centered()
-        // .borderless()
         .build()
         .unwrap_or_else(|err| panic!("Error creating an SDL window: {}", err));
 
