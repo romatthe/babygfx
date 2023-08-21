@@ -73,7 +73,7 @@ impl <'a> Renderer<'a> {
         self.canvas.copy(&self.texture, None, None).unwrap();
 
         // Clear the pixel buffer
-        self.clear_buffer(0xFFFFFF00);
+        self.clear_buffer(0xFF000000);
 
         // Present the renderer
         self.canvas.present();
@@ -81,6 +81,22 @@ impl <'a> Renderer<'a> {
     
     fn clear_buffer(&mut self, color: u32) {
         self.pixbuf.fill(color);
+    }
+
+    fn draw_grid(&mut self, multiple: usize) {
+        for x in (0..*WIN_WIDTH.get().unwrap()).step_by(multiple as usize) {
+            for y in (0..*WIN_HEIGHT.get().unwrap()).step_by(multiple as usize) {
+                self.pixbuf.set_pixel(x as usize, y as usize, 0xFF333333);
+            }
+        }
+    }
+
+    fn draw_rect(&mut self, x: u32, y: u32, width: u32, height: u32, color: u32) {
+        for i in x..(x + width) {
+            for j in y..(y + height) {
+                self.pixbuf.set_pixel(i as usize, j as usize, color);
+            }
+        }
     }
 }
 
@@ -111,6 +127,9 @@ fn main() {
         // Update
 
         // Render
+        // Draw the nice little grid
+        renderer.draw_grid(10);        
+        renderer.draw_rect(200, 300, 400, 400, 0x00FFC0CB);
         renderer.render();
     }
 }
@@ -128,7 +147,6 @@ fn setup() -> (Sdl, Canvas<Window>) {
     // Create an SDL window
     let mut window = video_subsystem.window("BabyGFX", *WIN_WIDTH.get().unwrap(), *WIN_HEIGHT.get().unwrap())
         .position_centered()
-        .borderless()
         .build()
         .unwrap_or_else(|err| panic!("Error creating an SDL window: {}", err));
 
