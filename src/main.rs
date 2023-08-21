@@ -126,14 +126,16 @@ fn setup() -> (Sdl, Canvas<Window>) {
     WIN_HEIGHT.set(display_mode.h as u32).unwrap();
 
     // Create an SDL window
-    let window = video_subsystem.window("BabyGFX", *WIN_WIDTH.get().unwrap(), *WIN_HEIGHT.get().unwrap())
+    let mut window = video_subsystem.window("BabyGFX", *WIN_WIDTH.get().unwrap(), *WIN_HEIGHT.get().unwrap())
         .position_centered()
-        .fullscreen()
+        .borderless()
         .build()
         .unwrap_or_else(|err| panic!("Error creating an SDL window: {}", err));
 
+    window.set_fullscreen(sdl2::video::FullscreenType::Desktop).unwrap();
+
     // Create a canvas with a renderer
-    let canvas = window.into_canvas()    
+    let canvas = window.into_canvas()
         .build()
         .unwrap();
 
