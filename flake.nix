@@ -26,7 +26,7 @@
           targets = [ "x86_64-unknown-linux-gnu" ];
         };
       in {
-        defaultPackage = with pkgs; rustPlatform.buildRustPackage {
+        defaultPackage = with pkgs; rustPlatform.buildRustPackage rec {
           pname = "babygfx";
           version = pkg-version;
           src = ./.;
@@ -40,15 +40,27 @@
           ];
 
           buildInputs = [
-            SDL2
+            # Deps
+            libxkbcommon
+
+            # WINIT_UNIX_BACKEND=wayland
+            wayland
+
+            # WINIT_UNIX_BACKEND=x11
+            xorg.libXcursor
+            xorg.libXrandr
+            xorg.libXi
+            xorg.libX11
           ];
+
+          LD_LIBRARY_PATH = "${lib.makeLibraryPath buildInputs}";
         };
   
         defaultApp = utils.lib.mkApp {
           drv = self.defaultPackage."${system}";
         };
 
-        devShell = with pkgs; mkShell {
+        devShell = with pkgs; mkShell rec {
           buildInputs = [
             # Project tools
             cargo-msrv
@@ -56,14 +68,24 @@
             rust-dist
 
             # Deps
-            SDL2
+            libxkbcommon
+
+            # WINIT_UNIX_BACKEND=wayland
+            wayland
+
+            # WINIT_UNIX_BACKEND=x11
+            xorg.libXcursor
+            xorg.libXrandr
+            xorg.libXi
+            xorg.libX11
           ];
+
+          LD_LIBRARY_PATH = "${lib.makeLibraryPath buildInputs}";
+          RUST_BACKTRACE = "1";
 
           shellHook = ''
   
           '';
-  
-          RUST_BACKTRACE = "1";
         };
       }
     );
